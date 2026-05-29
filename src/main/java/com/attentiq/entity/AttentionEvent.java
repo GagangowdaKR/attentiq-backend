@@ -1,6 +1,7 @@
 package com.attentiq.entity;
 
 import com.attentiq.enums.EventType;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +32,7 @@ public class AttentionEvent {
     private String screenshotPath;
 
     @Column(name = "timestamp", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 
     @Column(name = "acknowledged")
