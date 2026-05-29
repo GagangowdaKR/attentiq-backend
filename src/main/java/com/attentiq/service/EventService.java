@@ -7,6 +7,7 @@ import com.attentiq.entity.Meeting;
 import com.attentiq.entity.Participant;
 import com.attentiq.entity.User;
 import com.attentiq.enums.EventType;
+import com.attentiq.enums.Role;
 import com.attentiq.repository.AttentionEventRepository;
 import com.attentiq.repository.MeetingRepository;
 import com.attentiq.repository.ParticipantRepository;
@@ -65,7 +66,15 @@ public class EventService {
                 .acknowledged(false)
                 .build();
 
-        event = eventRepository.save(event);
+        if (!user.getRole().equals(Role.PARTICIPANT)){
+            log.info("Host event type = {} is detected : IGNORE Host Event", event.getEventType());
+            EventResponse response = toEventResponse(event);
+            socketIOService.sendAlertToHost(meeting.getId(), response);
+            return response;
+        } else {
+            event = eventRepository.save(event);
+            log.info("{} : {}-{} : {Event Saved - {}}", Role.PARTICIPANT, user.getId(), user.getName(),event.getEventType());
+        }
 
         // Update participant attention score
         updateAttentionScore(meeting, user);
