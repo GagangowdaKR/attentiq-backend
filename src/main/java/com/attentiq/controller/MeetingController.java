@@ -1,9 +1,13 @@
 package com.attentiq.controller;
 
 import com.attentiq.dto.request.MeetingRequest;
+import com.attentiq.dto.response.DetailedHistoryDTO;
 import com.attentiq.dto.response.JoinMeetingResponse;
 import com.attentiq.dto.response.MeetingResponse;
+import com.attentiq.dto.response.StudentAlertDTO;
+import com.attentiq.entity.Meeting;
 import com.attentiq.entity.User;
+import com.attentiq.repository.MeetingRepository;
 import com.attentiq.service.MeetingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/meetings")
@@ -19,6 +25,7 @@ import java.util.List;
 public class MeetingController {
 
     private final MeetingService meetingService;
+    private final MeetingRepository meetingRepository;
 
     // POST /api/meetings/create
     @PostMapping("/create")
@@ -75,5 +82,44 @@ public class MeetingController {
             @AuthenticationPrincipal User user) {
         meetingService.updateThresholds(id, req, user);
         return ResponseEntity.ok("{\"message\": \"Thresholds updated\"}");
+    }
+
+    @GetMapping("/list/{userId}")
+    public ResponseEntity<List<MeetingResponse>> getHostMeetingsByStatus(
+            @PathVariable Long userId,
+            @RequestParam(value = "active", defaultValue = "true") boolean isActive) {
+
+        List<Meeting> meetings = meetingService.getMeetingsByHostAndStatus(userId, isActive);
+        return ResponseEntity.ok(meetings.stream().map(MeetingResponse::from).toList());
+    }
+
+    @GetMapping("/detail-history")
+    public ResponseEntity<List<DetailedHistoryDTO>> getDetailedHistory(@RequestParam("hostId") Long hostId) {
+        // Fetch meetings hosted by this user
+        List<Meeting> meetings = meetingRepository.findByHostIdOrderByIdDesc(hostId);
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+
+        List<DetailedHistoryDTO> response = meetings.stream().map(meeting -> {
+            // Map the attention events to our clean UI sub-list DTO
+            List<StudentAlertDTO> alerts = meeting.getEvents().stream().map(event ->
+                    new StudentAlertDTO(
+                            event.getId(),
+                            event.getUser().getName(),
+                            event.getEventType().name(),
+                            event.getScreenshotPath(),
+                            event.getTimestamp().format(timeFormatter)
+                    )
+            ).collect(Collectors.toList());
+
+            return new DetailedHistoryDTO(
+                    meeting.getId(),
+                    meeting.getTitle(),
+                    meeting.getCode(),
+                    meeting.getStatus().name(),
+                    alerts
+            );
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 }

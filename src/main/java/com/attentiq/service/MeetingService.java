@@ -183,4 +183,10 @@ public class MeetingService {
                         ? m.getCreatedAt().format(DateTimeFormatter.ofPattern("MMM d")) : "")
                 .build();
     }
+
+    public List<Meeting> getMeetingsByHostAndStatus(Long userId, boolean isActive) {
+
+        MeetingStatus status = (isActive) ? MeetingStatus.ACTIVE : MeetingStatus.ENDED;
+        return meetingRepository.findByHostIdAndStatus(userId, status);
+    }
 }

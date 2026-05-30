@@ -1,5 +1,6 @@
 package com.attentiq.dto.response;
 
+import com.attentiq.entity.Meeting;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +21,15 @@ public class MeetingResponse {
     private Double avgAttention;
     private Integer alertCount;
     private String date;
+
+    public static MeetingResponse from(Meeting meeting) {
+        return  builder()
+                .code(meeting.getCode())
+                .status(meeting.getStatus().toString())
+                .createdAt(meeting.getCreatedAt())
+                .title(meeting.getTitle())
+                .hostName(meeting.getHost().getName())
+                .date(meeting.getCreatedAt().toLocalDate().toString())
+                .build();
+    }
 }
