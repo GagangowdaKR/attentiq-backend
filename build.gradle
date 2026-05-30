@@ -27,8 +27,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
     // Serialization & Deserialization
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.20.0")
-
+//    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.20.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.4")
     // MySQL Driver
     runtimeOnly 'com.mysql:mysql-connector-j'
 

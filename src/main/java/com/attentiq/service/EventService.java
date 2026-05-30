@@ -67,7 +67,7 @@ public class EventService {
                 .build();
 
         if (!user.getRole().equals(Role.PARTICIPANT)){
-            log.info("Host event type = {} is detected : IGNORE Host Event", event.getEventType());
+            log.info("Host event type = {} is detected : IGNORE Host Event", event.getEventType().name());
             EventResponse response = toEventResponse(event);
             socketIOService.sendAlertToHost(meeting.getId(), response);
             return response;

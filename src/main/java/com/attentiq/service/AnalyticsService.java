@@ -3,6 +3,7 @@ package com.attentiq.service;
 import com.attentiq.dto.response.HostOverviewResponse;
 import com.attentiq.dto.response.MeetingAnalyticsResponse;
 import com.attentiq.dto.response.MeetingResponse;
+import com.attentiq.dto.response.ParticipantAttendanceDto;
 import com.attentiq.entity.User;
 import com.attentiq.enums.EventType;
 import com.attentiq.repository.AttentionEventRepository;
@@ -103,5 +104,18 @@ public class AnalyticsService {
                 .phoneDetectedCount(phoneCount)
                 .events(eventService.getEventsForMeeting(meetingId))
                 .build();
+    }
+
+    public List<ParticipantAttendanceDto> findParticipantAttendanceOverview(Long userId) {
+        List<Object[]> rawRows = eventRepository.findParticipantAttendanceOverviewRaw(userId);
+
+        return rawRows.stream().map(row -> new ParticipantAttendanceDto(
+                (String) row[0], // meetingTitle
+                (String) row[1], // hostName
+                (String) row[2], // meetingCode
+                row[3] != null ? ((Number) row[3]).longValue() : 0L, // eyesClosedCount
+                row[4] != null ? ((Number) row[4]).longValue() : 0L, // faceMissingCount
+                row[5] != null ? ((Number) row[5]).longValue() : 0L  // phoneDetectedCount
+        )).collect(Collectors.toList());
     }
 }
